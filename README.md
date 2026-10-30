@@ -7,7 +7,7 @@ A console-based Java application designed to manage group expenses, split bills 
 * **Group Member Registration:** Register and manage a list of unique group members before tracking expenses.
 * **Add Expenses:** Record new expenses with details such as title, amount, payer, category, and participating members.
 * **Search Expenses:** Find specific expense records either by entering a unique **Expense ID** or by searching keywords in the **Title**.
-* **Update & Delete Expenses:** Modify existing expense details or remove records safely with confirmation prompts.
+* **Update & Delete Expenses:** Modify existing expense details or remove records safely accurately.
 * **Expense Summaries:** View overall group expenses, category-wise breakdowns, and individual participant share distributions.
 * **Precise Share Calculation:** Splits amounts accurately down to the lowest currency unit (e.g., paisa) to prevent rounding discrepancies.
 
