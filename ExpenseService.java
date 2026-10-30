@@ -1,779 +1,469 @@
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Scanner;
+import java.util.Set;
+import java.util.UUID;
 
 public class ExpenseService {
 
-    private static final Scanner sc = new Scanner(System.in);
-
-    // Group members
-    private static final ArrayList<String> members = new ArrayList<>();
-
-    // All expense records
-    private static final ArrayList<Expense> expenses = new ArrayList<>();
-
-    private static int nextExpenseId = 1;
+    private static final Scanner scanner = new Scanner(System.in);
 
     // Expense categories
-    enum Category {
-        FOOD, TRANSPORT, SHOPPING, RENT,
-        UTILITIES, ENTERTAINMENT, OTHER
+    public enum Category {
+        FOOD,
+        TRANSPORT,
+        SHOPPING,
+        RENT,
+        UTILITIES,
+        ENTERTAINMENT,
+        OTHER
     }
 
-    // Expense model
-    static class Expense {
-        int id;
-        String title;
-        BigDecimal amount;
-        String payer;
-        Category category;
-        ArrayList<String> participants;
+    // Expense Model
+    public static class Expense {
 
-        Expense(int id, String title, BigDecimal amount,
-                String payer, Category category,
-                ArrayList<String> participants) {
+        private final String expenseId;
+        private final String title;
+        private final BigDecimal amount;
+        private final String payer;
+        private final Category category;
+        private final List<String> participants;
 
-            this.id = id;
+        public Expense(String title, BigDecimal amount,
+                       String payer, Category category,
+                       List<String> participants) {
+
+            this.expenseId = UUID.randomUUID().toString();
             this.title = title;
             this.amount = amount;
             this.payer = payer;
             this.category = category;
-            this.participants = new ArrayList<>(participants);
+
+            this.participants = Collections.unmodifiableList(
+                    new ArrayList<>(participants)
+            );
+        }
+
+        public String getExpenseId() {
+            return expenseId;
+        }
+
+        public BigDecimal getAmount() {
+            return amount;
+        }
+
+        public BigDecimal getSharePerPerson() {
+            return amount.divide(
+                    BigDecimal.valueOf(participants.size()),
+                    2,
+                    RoundingMode.HALF_UP
+            );
+        }
+
+        @Override
+        public String toString() {
+            return "\nExpense ID: " + expenseId +
+                    "\nTitle: " + title +
+                    "\nAmount: Rs. " + amount +
+                    "\nPaid By: " + payer +
+                    "\nCategory: " + category +
+                    "\nParticipants: " + participants +
+                    "\nShare Per Person: Rs. " + getSharePerPerson();
         }
     }
 
-    // ================= MAIN =================
+    // Group members
+    private final Set<String> groupMembers = new HashSet<>();
+    private final List<String> memberList = new ArrayList<>();
 
-    public static void main(String[] args) {
+    // Saved expenses
+    private final List<Expense> expenses = new ArrayList<>();
 
-        System.out.println("==================================");
-        System.out.println("     EXPENSE MANAGEMENT SYSTEM");
-        System.out.println("==================================");
+    // Add group member
+    public void registerMember(String name) {
 
-        registerMembers();
-
-        int choice;
-
-        do {
-            showMenu();
-
-            choice = readInt("Enter your choice: ");
-
-            switch (choice) {
-
-                case 1:
-                    addExpense();
-                    break;
-
-                case 2:
-                    viewAllExpenses();
-                    break;
-
-                case 3:
-                    searchExpense();
-                    break;
-
-                case 4:
-                    updateExpense();
-                    break;
-
-                case 5:
-                    deleteExpense();
-                    break;
-
-                case 6:
-                    showExpenseSummary();
-                    break;
-
-                case 7:
-                    viewGroupMembers();
-                    break;
-
-                case 8:
-                    System.out.println("Thank you for using Expense Management System!");
-                    break;
-
-                default:
-                    System.out.println("Invalid choice. Please select 1 to 8.");
-            }
-
-        } while (choice != 8);
-
-        sc.close();
-    }
-
-    // ================= MEMBER REGISTRATION =================
-
-    private static void registerMembers() {
-
-        System.out.println("\n--- GROUP MEMBER REGISTRATION ---");
-
-        int count;
-
-        do {
-            count = readInt("Enter number of group members: ");
-
-            if (count <= 0) {
-                System.out.println("Please enter at least one member.");
-            }
-
-        } while (count <= 0);
-
-        for (int i = 1; i <= count; i++) {
-
-            while (true) {
-                System.out.print("Enter member " + i + " name: ");
-                String name = sc.nextLine().trim();
-
-                if (name.isEmpty()) {
-                    System.out.println("Name cannot be empty.");
-                    continue;
-                }
-
-                if (findMember(name)) {
-                    System.out.println("This member already exists.");
-                    continue;
-                }
-
-                members.add(name);
-                break;
-            }
+        if (name == null || name.trim().isEmpty()) {
+            throw new IllegalArgumentException(
+                    "Member name cannot be empty."
+            );
         }
 
-        System.out.println("\nMembers registered successfully!");
-        viewGroupMembers();
-    }
+        name = name.trim();
 
-    private static boolean findMember(String name) {
-
-        for (String member : members) {
-            if (member.equalsIgnoreCase(name)) {
-                return true;
-            }
+        if (!groupMembers.add(name.toLowerCase())) {
+            throw new IllegalArgumentException(
+                    "Member already exists."
+            );
         }
 
-        return false;
+        memberList.add(name);
+        System.out.println("Member added successfully!");
     }
 
-    // ================= MENU =================
+    // Validate expense
+    private void validateExpense(
+            String title,
+            BigDecimal amount,
+            String payer,
+            Category category,
+            List<String> participants) {
 
-    private static void showMenu() {
+        if (title == null || title.trim().isEmpty()) {
+            throw new IllegalArgumentException("Title is required.");
+        }
 
-        System.out.println("\n==================================");
-        System.out.println("        EXPENSE MAIN MENU");
-        System.out.println("==================================");
-        System.out.println("1. Add New Expense");
-        System.out.println("2. View All Expenses");
-        System.out.println("3. Search Expense");
-        System.out.println("4. Update Expense");
-        System.out.println("5. Delete Expense");
-        System.out.println("6. Expense Summary");
-        System.out.println("7. View Group Members");
-        System.out.println("8. Exit");
-        System.out.println("==================================");
+        if (amount == null ||
+                amount.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException(
+                    "Amount must be greater than zero."
+            );
+        }
+
+        if (amount.scale() > 2) {
+            throw new IllegalArgumentException(
+                    "Maximum two decimal places allowed."
+            );
+        }
+
+        if (payer == null ||
+                !groupMembers.contains(payer.trim().toLowerCase())) {
+            throw new IllegalArgumentException(
+                    "Invalid payer."
+            );
+        }
+
+        if (category == null) {
+            throw new IllegalArgumentException(
+                    "Category is required."
+            );
+        }
+
+        if (participants == null || participants.isEmpty()) {
+            throw new IllegalArgumentException(
+                    "Select at least one participant."
+            );
+        }
+
+        Set<String> selected = new HashSet<>();
+
+        for (String participant : participants) {
+
+            if (participant == null ||
+                    !groupMembers.contains(participant.trim().toLowerCase())) {
+                throw new IllegalArgumentException(
+                        "Invalid participant: " + participant
+                );
+            }
+
+            if (!selected.add(participant.trim().toLowerCase())) {
+                throw new IllegalArgumentException(
+                        "Duplicate participant: " + participant
+                );
+            }
+        }
     }
 
-    // ================= CREATE =================
+    // Add expense
+    public Expense addExpense(
+            String title,
+            BigDecimal amount,
+            String payer,
+            Category category,
+            List<String> participants) {
 
-    private static void addExpense() {
-
-        System.out.println("\n--- ADD NEW EXPENSE ---");
-
-        String title = readTitle();
-
-        BigDecimal amount = readAmount();
-
-        String payer = selectPayer();
-
-        Category category = selectCategory();
-
-        ArrayList<String> participants = selectParticipants();
+        validateExpense(title, amount, payer, category, participants);
 
         Expense expense = new Expense(
-                nextExpenseId,
-                title,
-                amount,
-                payer,
+                title.trim(),
+                amount.setScale(2, RoundingMode.UNNECESSARY),
+                payer.trim(),
                 category,
                 participants
         );
 
         expenses.add(expense);
 
-        System.out.println("\nExpense added successfully!");
-        System.out.println("Generated Expense ID: " + nextExpenseId);
+        System.out.println("\nExpense saved successfully!");
 
-        nextExpenseId++;
-
-        // Display the newly added expense
-        displayExpense(expense);
+        return expense;
     }
 
-    // ================= READ: VIEW ALL =================
+    // Display members
+    public void displayMembers() {
 
-    private static void viewAllExpenses() {
-
-        System.out.println("\n--- ALL EXPENSE RECORDS ---");
-
-        if (expenses.isEmpty()) {
-            System.out.println("No expenses found.");
+        if (memberList.isEmpty()) {
+            System.out.println("No members registered.");
             return;
         }
 
-        for (Expense expense : expenses) {
-            displayExpense(expense);
-        }
+        System.out.println("\n===== GROUP MEMBERS =====");
 
-        System.out.println("\nTotal expense records: " + expenses.size());
-    }
-
-    // ================= READ: SEARCH =================
-
-    private static void searchExpense() {
-
-        System.out.println("\n--- SEARCH EXPENSE ---");
-
-        if (expenses.isEmpty()) {
-            System.out.println("No expenses available to search.");
-            return;
-        }
-
-        System.out.println("1. Search by Expense ID");
-        System.out.println("2. Search by Title");
-
-        int choice = readInt("Select search option: ");
-
-        boolean found = false;
-
-        if (choice == 1) {
-
-            int id = readInt("Enter Expense ID: ");
-
-            Expense expense = findExpenseById(id);
-
-            if (expense != null) {
-                displayExpense(expense);
-                found = true;
-            }
-
-        } else if (choice == 2) {
-
-            System.out.print("Enter expense title: ");
-            String title = sc.nextLine().trim();
-
-            for (Expense expense : expenses) {
-
-                if (expense.title.toLowerCase()
-                        .contains(title.toLowerCase())) {
-
-                    displayExpense(expense);
-                    found = true;
-                }
-            }
-
-        } else {
-            System.out.println("Invalid search option.");
-            return;
-        }
-
-        if (!found) {
-            System.out.println("No matching expense found.");
+        for (int i = 0; i < memberList.size(); i++) {
+            System.out.println((i + 1) + ". " + memberList.get(i));
         }
     }
 
-    // ================= UPDATE =================
+    // Get member through selection
+    private String selectMember(String message) {
 
-    private static void updateExpense() {
+        displayMembers();
 
-        System.out.println("\n--- UPDATE EXPENSE ---");
+        int choice = readInt(message, 1, memberList.size());
 
-        if (expenses.isEmpty()) {
-            System.out.println("No expenses available to update.");
-            return;
-        }
+        return memberList.get(choice - 1);
+    }
 
-        int id = readInt("Enter Expense ID to update: ");
+    // Read integer safely
+    private static int readInt(String message, int min, int max) {
 
-        Expense expense = findExpenseById(id);
-
-        if (expense == null) {
-            System.out.println("Expense not found.");
-            return;
-        }
-
-        System.out.println("\nCurrent Expense Details:");
-        displayExpense(expense);
-
-        System.out.println("\nPress Enter to keep the existing value.");
-
-        // Update title
-        System.out.print("\nNew title [" + expense.title + "]: ");
-        String newTitle = sc.nextLine().trim();
-
-        if (!newTitle.isEmpty()) {
-            expense.title = newTitle;
-        }
-
-        // Update amount
-        System.out.print("New amount [" + expense.amount + "]: ");
-        String amountInput = sc.nextLine().trim();
-
-        if (!amountInput.isEmpty()) {
+        while (true) {
+            System.out.print(message);
 
             try {
-                BigDecimal newAmount = new BigDecimal(amountInput);
+                int value = Integer.parseInt(scanner.nextLine().trim());
 
-                if (newAmount.compareTo(BigDecimal.ZERO) <= 0
-                        || newAmount.scale() > 2) {
-
-                    System.out.println(
-                            "Invalid amount. Keeping previous amount."
-                    );
-
-                } else {
-                    expense.amount = newAmount.setScale(2);
+                if (value >= min && value <= max) {
+                    return value;
                 }
+
+                System.out.println(
+                        "Enter a number between " + min + " and " + max
+                );
 
             } catch (NumberFormatException e) {
-                System.out.println(
-                        "Invalid amount. Keeping previous amount."
-                );
+                System.out.println("Please enter a valid number.");
             }
         }
-
-        // Update payer
-        System.out.println("\nCurrent payer: " + expense.payer);
-        System.out.println("Do you want to change payer? (y/n)");
-
-        if (readYesNo()) {
-            expense.payer = selectPayer();
-        }
-
-        // Update category
-        System.out.println("\nCurrent category: " + expense.category);
-        System.out.println("Do you want to change category? (y/n)");
-
-        if (readYesNo()) {
-            expense.category = selectCategory();
-        }
-
-        // Update participants
-        System.out.println("\nCurrent participants: "
-                + expense.participants);
-
-        System.out.println("Do you want to change participants? (y/n)");
-
-        if (readYesNo()) {
-            expense.participants = selectParticipants();
-        }
-
-        System.out.println("\nExpense updated successfully!");
-
-        // Display updated record
-        displayExpense(expense);
     }
 
-    // ================= DELETE =================
+    // Add members through user input
+    private void addMembers() {
 
-    private static void deleteExpense() {
+        System.out.println("\n===== ADD GROUP MEMBERS =====");
 
-        System.out.println("\n--- DELETE EXPENSE ---");
+        int count = readInt("How many members? ", 1, 100);
 
-        if (expenses.isEmpty()) {
-            System.out.println("No expenses available to delete.");
-            return;
-        }
+        for (int i = 0; i < count; i++) {
 
-        int id = readInt("Enter Expense ID to delete: ");
+            while (true) {
+                System.out.print("Enter member " + (i + 1) + " name: ");
 
-        Expense expense = findExpenseById(id);
+                String name = scanner.nextLine();
 
-        if (expense == null) {
-            System.out.println("Expense not found.");
-            return;
-        }
+                try {
+                    registerMember(name);
+                    break;
 
-        System.out.println("\nExpense selected for deletion:");
-        displayExpense(expense);
-
-        System.out.print("\nAre you sure you want to delete it? (y/n): ");
-
-        if (readYesNo()) {
-
-            expenses.remove(expense);
-
-            System.out.println("Expense deleted successfully!");
-
-            System.out.println("\nRemaining Expense Records:");
-            viewAllExpenses();
-
-        } else {
-            System.out.println("Delete operation cancelled.");
-        }
-    }
-
-    // ================= SUMMARY =================
-
-    private static void showExpenseSummary() {
-
-        System.out.println("\n--- EXPENSE SUMMARY ---");
-
-        if (expenses.isEmpty()) {
-            System.out.println("No expenses available.");
-            return;
-        }
-
-        BigDecimal total = BigDecimal.ZERO;
-
-        for (Expense expense : expenses) {
-            total = total.add(expense.amount);
-        }
-
-        System.out.println("Total Expense Records: " + expenses.size());
-        System.out.println("Total Group Expenses: Rs. " + total);
-
-        System.out.println("\n--- CATEGORY-WISE SUMMARY ---");
-
-        for (Category category : Category.values()) {
-
-            BigDecimal categoryTotal = BigDecimal.ZERO;
-
-            for (Expense expense : expenses) {
-
-                if (expense.category == category) {
-                    categoryTotal = categoryTotal.add(expense.amount);
+                } catch (IllegalArgumentException e) {
+                    System.out.println("Error: " + e.getMessage());
                 }
             }
-
-            if (categoryTotal.compareTo(BigDecimal.ZERO) > 0) {
-                System.out.println(category + ": Rs. " + categoryTotal);
-            }
-        }
-
-        System.out.println("\n--- PARTICIPANT SHARES ---");
-
-        for (Expense expense : expenses) {
-
-            List<BigDecimal> shares = calculateShares(expense);
-
-            System.out.println("\nExpense: " + expense.title);
-
-            for (int i = 0; i < expense.participants.size(); i++) {
-
-                System.out.println(
-                        expense.participants.get(i)
-                                + " share: Rs. " + shares.get(i)
-                );
-            }
         }
     }
 
-    // ================= EXPENSE DISPLAY =================
+    // Add expense through user input
+    private void addExpenseFromUser() {
 
-    private static void displayExpense(Expense expense) {
-
-        System.out.println("\n----------------------------------");
-        System.out.println("          EXPENSE DETAILS");
-        System.out.println("----------------------------------");
-
-        System.out.println("Expense ID: " + expense.id);
-        System.out.println("Title: " + expense.title);
-        System.out.println("Amount: Rs. " + expense.amount);
-        System.out.println("Paid By: " + expense.payer);
-        System.out.println("Category: " + expense.category);
-
-        System.out.println("Participants:");
-
-        List<BigDecimal> shares = calculateShares(expense);
-
-        for (int i = 0; i < expense.participants.size(); i++) {
-
-            System.out.println(
-                    "  " + expense.participants.get(i)
-                            + " - Rs. " + shares.get(i)
-            );
+        if (memberList.isEmpty()) {
+            System.out.println("Please add group members first.");
+            return;
         }
 
-        System.out.println("----------------------------------");
-    }
+        System.out.println("\n===== ADD NEW EXPENSE =====");
 
-    // ================= FIND EXPENSE =================
+        System.out.print("Enter expense title: ");
+        String title = scanner.nextLine();
 
-    private static Expense findExpenseById(int id) {
-
-        for (Expense expense : expenses) {
-
-            if (expense.id == id) {
-                return expense;
-            }
-        }
-
-        return null;
-    }
-
-    // ================= INPUT HELPERS =================
-
-    private static String readTitle() {
+        BigDecimal amount;
 
         while (true) {
-
-            System.out.print("Enter expense title: ");
-            String title = sc.nextLine().trim();
-
-            if (!title.isEmpty()) {
-                return title;
-            }
-
-            System.out.println("Title cannot be empty.");
-        }
-    }
-
-    private static BigDecimal readAmount() {
-
-        while (true) {
-
-            System.out.print("Enter expense amount: Rs. ");
-            String input = sc.nextLine().trim();
+            System.out.print("Enter amount: ");
 
             try {
-
-                BigDecimal amount = new BigDecimal(input);
+                amount = new BigDecimal(scanner.nextLine().trim());
 
                 if (amount.compareTo(BigDecimal.ZERO) <= 0) {
-                    System.out.println("Amount must be greater than zero.");
+                    System.out.println("Amount must be positive.");
                     continue;
                 }
 
                 if (amount.scale() > 2) {
                     System.out.println(
-                            "Amount cannot have more than 2 decimal places."
+                            "Maximum two decimal places allowed."
                     );
                     continue;
                 }
 
-                return amount.setScale(2);
+                break;
 
             } catch (NumberFormatException e) {
-                System.out.println("Please enter a valid numeric amount.");
+                System.out.println("Enter a valid amount.");
             }
         }
-    }
 
-    private static int readInt(String message) {
+        System.out.println("\nSelect Payer:");
 
-        while (true) {
+        String payer = selectMember("Choose payer number: ");
 
-            System.out.print(message);
-            String input = sc.nextLine().trim();
-
-            try {
-                return Integer.parseInt(input);
-
-            } catch (NumberFormatException e) {
-                System.out.println("Please enter a valid whole number.");
-            }
-        }
-    }
-
-    private static boolean readYesNo() {
-
-        while (true) {
-
-            System.out.print("Enter y or n: ");
-            String input = sc.nextLine().trim();
-
-            if (input.equalsIgnoreCase("y")) {
-                return true;
-            }
-
-            if (input.equalsIgnoreCase("n")) {
-                return false;
-            }
-
-            System.out.println("Please enter y or n.");
-        }
-    }
-
-    // ================= PAYER SELECTION =================
-
-    private static String selectPayer() {
-
-        System.out.println("\nSelect the member who paid:");
-
-        for (int i = 0; i < members.size(); i++) {
-            System.out.println((i + 1) + ". " + members.get(i));
-        }
-
-        while (true) {
-
-            int choice = readInt("Select member number: ");
-
-            if (choice >= 1 && choice <= members.size()) {
-                return members.get(choice - 1);
-            }
-
-            System.out.println("Invalid member number.");
-        }
-    }
-
-    // ================= CATEGORY SELECTION =================
-
-    private static Category selectCategory() {
-
-        System.out.println("\nSelect Expense Category:");
+        // Category selection
+        System.out.println("\n===== SELECT CATEGORY =====");
 
         Category[] categories = Category.values();
 
         for (int i = 0; i < categories.length; i++) {
-            System.out.println(
-                    (i + 1) + ". " + categories[i]
-            );
+            System.out.println((i + 1) + ". " + categories[i]);
         }
 
-        while (true) {
+        int categoryChoice = readInt(
+                "Choose category: ", 1, categories.length
+        );
 
-            int choice = readInt("Select category number: ");
+        Category category = categories[categoryChoice - 1];
 
-            if (choice >= 1 && choice <= categories.length) {
-                return categories[choice - 1];
-            }
+        // Participant selection
+        System.out.println("\n===== SELECT PARTICIPANTS =====");
 
-            System.out.println("Invalid category number.");
-        }
-    }
-
-    // ================= PARTICIPANT SELECTION =================
-
-    private static ArrayList<String> selectParticipants() {
-
-        ArrayList<String> selectedParticipants = new ArrayList<>();
-
-        System.out.println("\nSelect participants for splitting:");
-
-        for (int i = 0; i < members.size(); i++) {
-            System.out.println((i + 1) + ". " + members.get(i));
-        }
+        displayMembers();
 
         System.out.println(
-                "Enter member numbers separated by commas."
+                "Enter participant numbers separated by commas."
         );
 
         System.out.println("Example: 1,2,3");
 
+        List<String> participants = new ArrayList<>();
+
         while (true) {
+            System.out.print("Select participants: ");
 
-            System.out.print("Enter participants: ");
-            String input = sc.nextLine().trim();
+            String input = scanner.nextLine();
 
-            if (input.isEmpty()) {
-                System.out.println("Select at least one participant.");
-                continue;
-            }
+            try {
+                String[] choices = input.split(",");
 
-            String[] choices = input.split(",");
-            ArrayList<String> temporaryList = new ArrayList<>();
+                Set<Integer> selectedNumbers = new HashSet<>();
 
-            boolean valid = true;
-
-            for (String choice : choices) {
-
-                try {
+                for (String choice : choices) {
 
                     int number = Integer.parseInt(choice.trim());
 
-                    if (number < 1 || number > members.size()) {
-                        System.out.println("Invalid member number: " + number);
-                        valid = false;
-                        break;
-                    }
-
-                    String member = members.get(number - 1);
-
-                    if (temporaryList.contains(member)) {
-                        System.out.println(
-                                "Duplicate participant: " + member
+                    if (number < 1 || number > memberList.size()) {
+                        throw new IllegalArgumentException(
+                                "Invalid member number: " + number
                         );
-                        valid = false;
-                        break;
                     }
 
-                    temporaryList.add(member);
+                    if (!selectedNumbers.add(number)) {
+                        throw new IllegalArgumentException(
+                                "Duplicate member selection."
+                        );
+                    }
 
-                } catch (NumberFormatException e) {
-
-                    System.out.println("Invalid input. Enter numbers only.");
-                    valid = false;
-                    break;
+                    participants.add(memberList.get(number - 1));
                 }
-            }
 
-            if (valid && !temporaryList.isEmpty()) {
-                selectedParticipants.addAll(temporaryList);
-                return selectedParticipants;
-            }
+                break;
 
-            System.out.println("Please select participants again.");
+            } catch (NumberFormatException e) {
+                participants.clear();
+                System.out.println("Enter valid comma-separated numbers.");
+
+            } catch (IllegalArgumentException e) {
+                participants.clear();
+                System.out.println("Error: " + e.getMessage());
+            }
+        }
+
+        try {
+            addExpense(title, amount, payer, category, participants);
+
+        } catch (IllegalArgumentException e) {
+            System.out.println("Expense not saved: " + e.getMessage());
         }
     }
 
-    // ================= SHARE CALCULATION =================
+    // Display all expenses
+    public void displayAllExpenses() {
 
-    private static List<BigDecimal> calculateShares(Expense expense) {
-
-        ArrayList<BigDecimal> shares = new ArrayList<>();
-
-        int count = expense.participants.size();
-
-        if (count == 0) {
-            return shares;
-        }
-
-        // Convert amount into paisa to avoid rounding errors
-        long totalPaisa = expense.amount
-                .movePointRight(2)
-                .longValueExact();
-
-        long baseShare = totalPaisa / count;
-        long remainder = totalPaisa % count;
-
-        for (int i = 0; i < count; i++) {
-
-            long memberShare = baseShare;
-
-            // Distribute remaining paisa one by one
-            if (i < remainder) {
-                memberShare++;
-            }
-
-            shares.add(
-                    BigDecimal.valueOf(memberShare)
-                            .movePointLeft(2)
-                            .setScale(2)
-            );
-        }
-
-        return shares;
-    }
-
-    // ================= VIEW MEMBERS =================
-
-    private static void viewGroupMembers() {
-
-        System.out.println("\n--- GROUP MEMBERS ---");
-
-        if (members.isEmpty()) {
-            System.out.println("No group members found.");
+        if (expenses.isEmpty()) {
+            System.out.println("\nNo expenses found.");
             return;
         }
 
-        for (int i = 0; i < members.size(); i++) {
-            System.out.println(
-                    (i + 1) + ". " + members.get(i)
-            );
+        System.out.println("\n===== ALL EXPENSES =====");
+
+        for (Expense expense : expenses) {
+            System.out.println(expense);
+            System.out.println("-------------------------");
+        }
+    }
+
+    // Total expenses
+    public BigDecimal getTotalExpenses() {
+
+        BigDecimal total = BigDecimal.ZERO;
+
+        for (Expense expense : expenses) {
+            total = total.add(expense.getAmount());
         }
 
-        System.out.println("Total Members: " + members.size());
+        return total;
+    }
+
+    // Main menu
+    public static void main(String[] args) {
+
+        ExpenseService service = new ExpenseService();
+
+        System.out.println("================================");
+        System.out.println("     EXPENSE MANAGEMENT SYSTEM");
+        System.out.println("================================");
+
+        service.addMembers();
+
+        while (true) {
+
+            System.out.println("\n========== MAIN MENU ==========");
+            System.out.println("1. Add New Expense");
+            System.out.println("2. View All Expenses");
+            System.out.println("3. View Group Members");
+            System.out.println("4. View Total Expenses");
+            System.out.println("5. Exit");
+
+            int choice = readInt("Enter your choice: ", 1, 5);
+
+            switch (choice) {
+
+                case 1:
+                    service.addExpenseFromUser();
+                    break;
+
+                case 2:
+                    service.displayAllExpenses();
+                    break;
+
+                case 3:
+                    service.displayMembers();
+                    break;
+
+                case 4:
+                    System.out.println(
+                            "\nTotal Expenses: Rs. " +
+                            service.getTotalExpenses()
+                    );
+                    break;
+
+                case 5:
+                    System.out.println(
+                            "\nThank you for using Expense Management System!"
+                    );
+                    scanner.close();
+                    return;
+            }
+        }
     }
 }
