@@ -18,7 +18,7 @@ The system allows users to create expense groups, manage members, record shared 
 ## Project Modules and Responsibilities
 
 ### Module 1: Group & Member Management
-**Assigned to: Member 1**
+**Assigned to: Member 1 (Nida Iqbal)**
 
 Main Class: `GroupService.java`
 
@@ -29,7 +29,7 @@ Responsibilities:
 - Display the group member list.
 
 ### Module 2: Expense Management
-**Assigned to: Member 2**
+**Assigned to: Member 2 (Izza Zia)**
 
 Main Class: `ExpenseService.java`
 
@@ -40,7 +40,7 @@ Responsibilities:
 - Validate and save expense records.
 
 ### Module 3: Balance Calculation & Debt Settlement
-**Assigned to: Member 3**
+**Assigned to: Member 3 (Wajeeha**
 
 Main Class: `BalanceService.java`
 
@@ -51,7 +51,7 @@ Responsibilities:
 - Test calculations and handle rounding accurately.
 
 ### Module 4: AI Budget Advisor
-**Assigned to: Member 4**
+**Assigned to: Member 4 (Fatima Bukhari)**
 
 Main Class: `AIAdvisorService.java`
 
@@ -62,7 +62,7 @@ Responsibilities:
 - Handle API errors and display AI-generated budget advice.
 
 ### Module 5: Dashboard & Reports
-**Assigned to: Member 5**
+**Assigned to: Member 5 (Anfal Faruqi)**
 
 Main Class: `DashboardPanel.java`
 
