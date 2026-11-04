@@ -19,12 +19,7 @@ Please rearrange the menu options in the correct order. Move “Add Group Member
 
 # Module 4
 # Prompt 
-AI Budget Advisor
-- Analyze spending summaries using an LLM.
-- Identify high-spending categories.
-- Suggest practical ways to save money.
-- Handle API errors and display AI advice.
-AIAdvisorService.java..this is the module i have to work on and i have given you the outputs so u know what is happening and it's easy to connect the dots. Now give me code for my modules BUT FIRST TELL ME HOW TO INTEGRATE API KEY BECAUSE I THINK I WILL BE HAVING TROUBLE ADDING IT TO THE MODULE and see how the output is so clear and contains everything required so work efficiently like that too,telling clearly what classes are doing. I want a class with spending summary, one that builds prompts, one main test class and one class of AI advising service in which i'd paste the url of my API
+Give me clean, well-structured classes: `SpendingSummary.java` (using `BigDecimal` for budget tracking and category spend), `PromptBuilder.java` (for formatting spending breakdowns and instructions), `AIAdvisorService.java` (for generating actionable advice and handling API errors/connection failures), and a main test class for my module:AI BudgetAdvisor.java. Make sure that the system identifies high-spending categories, validates inputs with proper exception handling, handles API integration cleanly, and displays financial recommendations in a console format. Keep the code simple and in the format of the existing project structure so there are no issues.
 
 # Module 5
 # Prompt 1
