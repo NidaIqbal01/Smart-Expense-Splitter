@@ -1,22 +1,29 @@
-# Python cache & temporary files
-__pycache__/
-*.py[cod]
-*$py.class
-.pytest_cache/
+# Compiled Java class files
+*.class
 
-# Environment variables & secrets
-.env
-.env.local
+# Package Files #
+*.jar
+*.war
+*.ear
 
-# Virtual Environments
-venv/
-env/
-ENV/
+# Virtual Machine crash logs
+hs_err_pid*
+replay_pid*
 
-# VS Code settings
+# Build tools (Maven / Gradle)
+target/
+build/
+.gradle/
+.mvn/
+
+# IDE specific files (VS Code, IntelliJ IDEA, Eclipse)
 .vscode/
 .idea/
+*.iml
+.settings/
+.classpath
+.project
 
-# OS files
+# OS generated files
 .DS_Store
 Thumbs.db
