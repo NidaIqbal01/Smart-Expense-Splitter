@@ -18,7 +18,7 @@ The system allows users to create expense groups, manage members, record shared 
 ## Project Modules and Responsibilities
 
 ### Module 1: Group & Member Management
-**Assigned to: Member 1**
+**Assigned to: Member 1 (Nida Iqbal)**
 
 Main Class: `GroupService.java`
 
@@ -29,7 +29,7 @@ Responsibilities:
 - Display the group member list.
 
 ### Module 2: Expense Management
-**Assigned to: Member 2**
+**Assigned to: Member 2 (Izza Zia)**
 
 Main Class: `ExpenseService.java`
 
@@ -40,7 +40,7 @@ Responsibilities:
 - Validate and save expense records.
 
 ### Module 3: Balance Calculation & Debt Settlement
-**Assigned to: Member 3**
+**Assigned to: Member 3 (Wajeeha Aqdas)**
 
 Main Class: `BalanceService.java`
 
@@ -51,7 +51,7 @@ Responsibilities:
 - Test calculations and handle rounding accurately.
 
 ### Module 4: AI Budget Advisor
-**Assigned to: Member 4**
+**Assigned to: Member 4 (Fatima Bukhari)**
 
 Main Class: `AIAdvisorService.java`
 
@@ -62,7 +62,7 @@ Responsibilities:
 - Handle API errors and display AI-generated budget advice.
 
 ### Module 5: Dashboard & Reports
-**Assigned to: Member 5**
+**Assigned to: Member 5 (Anfal Faruqi)**
 
 Main Class: `DashboardPanel.java`
 
@@ -98,18 +98,18 @@ Smart-Expense-Splitter/
 └── CODE_PROMPT.md
 ```
 
-*Note: The structure above is a suggested organization. Actual package names and folders may vary depending on implementation.*
 
 ## How the System Works
 
-1. Create an expense group.
-2. Add members to the group.
-3. Record shared expenses with their details.
-4. Select participants who share each expense.
-5. Calculate individual shares and outstanding balances.
-6. Simplify debts to minimize transactions.
-7. Analyze spending patterns using the AI Budget Advisor.
-8. View expense summaries, balances, and reports through the dashboard.
+1. Display an interactive main menu to navigate system features and select actions.
+2. Create an expense group.
+3. Add members to the group.
+4. Record shared expenses with their details.
+5. Select participants who share each expense.
+6. Calculate individual shares and outstanding balances.
+7. Simplify debts to minimize transactions.
+8. Analyze spending patterns using the AI Budget Advisor.
+9. View expense summaries, balances, and reports through the dashboard.
 
 ## Team Members
 
